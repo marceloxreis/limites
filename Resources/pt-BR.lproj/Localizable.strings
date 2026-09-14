@@ -1,0 +1,73 @@
+/* Brazilian Portuguese. Keys are the English strings in the code; scripts/check-strings.sh keeps them in sync. */
+
+/* Menu */
+"Usage limits" = "Limites de uso";
+"Checking…" = "Consultando…";
+"Updated just now" = "Atualizado agora";
+"Updated %@ ago" = "Atualizado há %@";
+"Refresh now" = "Atualizar agora";
+"Quit Limites" = "Encerrar Limites";
+
+/* Tabs waiting for you */
+"Tab needs you" = "Precisa de você";
+"Tabs need you" = "Precisam de você";
+"1 tab needs you" = "1 aba precisa de você";
+"%lld tabs need you" = "%lld abas precisam de você";
+"Clear" = "Limpar";
+"Go to tab" = "Ir para a aba";
+"Home" = "Pasta pessoal";
+"Wants permission" = "Pede permissão";
+"Wants permission to use %@" = "Pede permissão para usar %@";
+"Finished, waiting for you" = "Terminou e espera você";
+"Has a question" = "Tem uma pergunta";
+"now" = "agora";
+
+/* Usage windows */
+"5-hour window" = "Janela de 5 horas";
+"1-hour window" = "Janela de 1 hora";
+"%lld-hour window" = "Janela de %lld horas";
+"%lld-minute window" = "Janela de %lld min";
+"Short window" = "Janela curta";
+"Long window" = "Janela longa";
+"Day" = "Dia";
+"Week" = "Semana";
+"Week · %@" = "Semana · %@";
+"Week · %@ only" = "Semana · só %@";
+"%@ used" = "%@ usado";
+"1 full reset available" = "1 reset completo disponível";
+"%lld full resets available" = "%lld resets completos disponíveis";
+
+/* Resets */
+"Resetting" = "Renovando";
+"Resets in %@" = "Renova em %@";
+"Resets today at %@" = "Renova hoje às %@";
+"Resets tomorrow at %@" = "Renova amanhã às %@";
+"Resets %@ at %@" = "Renova %@ às %@";
+"Resets on %@ at %@" = "Renova em %@ às %@";
+
+/* Durations */
+"%lld min" = "%lld min";
+"%lld h" = "%lld h";
+"%lld h %lld min" = "%lld h %lld min";
+"1 day" = "1 dia";
+"%lld days" = "%lld dias";
+"1 day %lld h" = "1 dia e %lld h";
+"%lld days %lld h" = "%lld dias e %lld h";
+
+/* Errors */
+"%@ is not installed" = "%@ não está instalado";
+"No response" = "Sem resposta";
+"No response from Codex" = "Sem resposta do Codex";
+"Limits unavailable" = "Limites indisponíveis";
+"Sign in to Claude Code" = "Entre na sua conta no Claude Code";
+"Sign in to Codex" = "Entre na sua conta no Codex";
+"Unexpected response from Claude Code" = "Resposta inesperada do Claude Code";
+"Unexpected response from Codex" = "Resposta inesperada do Codex";
+"Codex error" = "Erro no Codex";
+
+/* Settings */
+"Percentage in menu bar" = "Porcentagem na barra de menus";
+"Alert sound" = "Som de aviso";
+"Sound" = "Som";
+"None" = "Nenhum";
+"Open at login" = "Abrir ao iniciar sessão";
