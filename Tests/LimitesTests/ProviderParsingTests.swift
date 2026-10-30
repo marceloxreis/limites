@@ -100,4 +100,14 @@ private func date(_ year: Int, _ month: Int, _ day: Int, _ hour: Int, _ minute: 
         #expect(Format.duration(86_400) == "1 day")
         #expect(Format.duration(3 * 86_400 + 4 * 3600) == "3 days 4 h")
     }
+
+    @Test func resetsBeyondTwelveHoursShareOneFormat() {
+        let now = Date()
+        let soon = Format.reset(now.addingTimeInterval(20 * 3600), now: now)
+        let later = Format.reset(now.addingTimeInterval(6.5 * 86_400), now: now)
+        // Both carry the date, whether the reset is tomorrow or a week away.
+        #expect(soon.contains(String(Calendar.current.component(.day, from: now.addingTimeInterval(20 * 3600)))))
+        #expect(later.contains(String(Calendar.current.component(.day, from: now.addingTimeInterval(6.5 * 86_400)))))
+        #expect(!soon.contains("tomorrow") && !later.contains(" on "))
+    }
 }

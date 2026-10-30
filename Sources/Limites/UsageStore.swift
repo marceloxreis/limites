@@ -9,7 +9,7 @@ struct ProviderState: Equatable {
 @MainActor
 @Observable
 final class UsageStore {
-    var claude = ProviderState()
+    var claude: [String: ProviderState] = [:]
     var codex = ProviderState()
     var isRefreshing = false
     var lastUpdated: Date?
@@ -28,7 +28,7 @@ final class UsageStore {
 
     /// The highest usage across every window: the limit that will stop you first.
     var highestUsage: Double? {
-        let all = [claude.snapshot, codex.snapshot].compactMap { $0 }.flatMap(\.windows).map(\.usedPercent)
+        let all = (claude.values.map(\.snapshot) + [codex.snapshot]).compactMap { $0 }.flatMap(\.windows).map(\.usedPercent)
         return all.max()
     }
 
@@ -39,7 +39,7 @@ final class UsageStore {
 
     func refresh() {
         guard !Demo.isEnabled else {
-            claude = ProviderState(snapshot: Demo.claude)
+            for account in ClaudeAccount.all { claude[account.id] = ProviderState(snapshot: Demo.claude) }
             codex = ProviderState(snapshot: Demo.codex)
             lastUpdated = .now
             return
@@ -47,11 +47,19 @@ final class UsageStore {
         guard !isRefreshing else { return }
         isRefreshing = true
         Task {
-            async let claudeResult = Self.capture { try await ClaudeProvider.fetch() }
             async let codexResult = Self.capture { try await CodexProvider.fetch() }
-            let (claudeNow, codexNow) = await (claudeResult, codexResult)
-            claude = Self.merge(claude, claudeNow)
-            codex = Self.merge(codex, codexNow)
+            let claudeNow = await withTaskGroup(of: (String, Result<ProviderSnapshot, Error>).self) { group in
+                for account in ClaudeAccount.all {
+                    group.addTask { (account.id, await Self.capture { try await ClaudeProvider.fetch(account: account) }) }
+                }
+                var results: [String: Result<ProviderSnapshot, Error>] = [:]
+                for await (id, result) in group { results[id] = result }
+                return results
+            }
+            for (id, result) in claudeNow {
+                claude[id] = Self.merge(claude[id] ?? ProviderState(), result)
+            }
+            codex = Self.merge(codex, await codexResult)
             lastUpdated = .now
             isRefreshing = false
         }

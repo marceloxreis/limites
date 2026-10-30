@@ -74,6 +74,7 @@ enum CLI {
         _ arguments: [String],
         input: Data? = nil,
         keepStdinOpen: Bool = false,
+        environment overrides: [String: String?] = [:],
         timeout: TimeInterval,
         until done: (@Sendable (Data) -> Bool)? = nil
     ) async throws -> Data {
@@ -81,7 +82,9 @@ enum CLI {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: path)
             process.arguments = arguments
-            process.environment = environment
+            var env = environment
+            for (key, value) in overrides { env[key] = value }
+            process.environment = env
             process.currentDirectoryURL = FileManager.default.temporaryDirectory
             let stdout = Pipe()
             let stdin = Pipe()

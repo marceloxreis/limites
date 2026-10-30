@@ -17,8 +17,10 @@ struct MenuContent: View {
                 }
 
                 MenuDivider()
-                ProviderSection(name: "Claude Code", state: usage.claude, now: context.date)
-                MenuDivider()
+                ForEach(ClaudeAccount.all) { account in
+                    ProviderSection(name: account.name, state: usage.claude[account.id] ?? ProviderState(), now: context.date)
+                    MenuDivider()
+                }
                 ProviderSection(name: "Codex", state: usage.codex, now: context.date)
                 MenuDivider()
                 SettingsSection()
@@ -223,11 +225,10 @@ private struct WindowRow: View {
                     .foregroundStyle(.secondary)
             }
             UsageBar(fraction: window.usedPercent / 100)
-            if let reset = window.resetsAt {
-                Text(Format.reset(reset, now: now))
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-            }
+            // A window with no reset has not started yet; the line keeps every block the same height.
+            Text(window.resetsAt.map { Format.reset($0, now: now) } ?? String(localized: "Not started"))
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)
     }
@@ -432,7 +433,7 @@ enum Format {
         return seconds < 60 ? String(localized: "now") : duration(seconds)
     }
 
-    /// Under 12 h: a countdown. Beyond that: day and time.
+    /// Under 12 h: a countdown. Beyond that: always weekday, date and time, so every account reads the same.
     static func reset(_ date: Date, now: Date) -> String {
         let seconds = date.timeIntervalSince(now)
         if seconds <= 0 { return String(localized: "Resetting") }
@@ -441,15 +442,8 @@ enum Format {
             return String(localized: "Resets in \(remaining)")
         }
 
-        let calendar = Calendar.current
         let time = date.formatted(.dateTime.hour().minute().locale(locale))
-        if calendar.isDateInTomorrow(date) { return String(localized: "Resets tomorrow at \(time)") }
-        if calendar.isDateInToday(date) { return String(localized: "Resets today at \(time)") }
-        if seconds < 6 * 86_400 {
-            let weekday = date.formatted(.dateTime.weekday(.wide).locale(locale))
-            return String(localized: "Resets \(weekday) at \(time)")
-        }
-        let day = date.formatted(.dateTime.day().month(.abbreviated).locale(locale))
-        return String(localized: "Resets on \(day) at \(time)")
+        let day = date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated).locale(locale))
+        return String(localized: "Resets \(day) at \(time)")
     }
 }

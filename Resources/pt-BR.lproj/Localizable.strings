@@ -40,10 +40,8 @@
 /* Resets */
 "Resetting" = "Renovando";
 "Resets in %@" = "Renova em %@";
-"Resets today at %@" = "Renova hoje às %@";
-"Resets tomorrow at %@" = "Renova amanhã às %@";
 "Resets %@ at %@" = "Renova %@ às %@";
-"Resets on %@ at %@" = "Renova em %@ às %@";
+"Not started" = "Não iniciada";
 
 /* Durations */
 "%lld min" = "%lld min";

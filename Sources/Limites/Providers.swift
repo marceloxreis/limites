@@ -18,8 +18,10 @@ struct ProviderSnapshot: Equatable {
 /// `claude -p /usage` is a local command: it never calls the model and uses no tokens.
 /// With no setting sources and no MCP config it runs no hooks and starts no servers.
 enum ClaudeProvider {
-    static func fetch() async throws -> ProviderSnapshot {
+    static func fetch(account: ClaudeAccount) async throws -> ProviderSnapshot {
         guard let binary = CLI.locate("claude") else { throw CLIError.notFound("Claude Code") }
+        // nil removes CLAUDE_CONFIG_DIR, so the default account keeps its own Keychain item.
+        let overrides: [String: String?] = ["CLAUDE_CONFIG_DIR": account.configDir]
         let data = try await CLI.run(binary, [
             "-p", "/usage",
             "--output-format", "json",
@@ -27,7 +29,7 @@ enum ClaudeProvider {
             "--permission-mode", "plan",
             "--setting-sources", "",
             "--strict-mcp-config",
-        ], timeout: 45)
+        ], environment: overrides, timeout: 45)
 
         guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw CLIError.failed(String(localized: "Unexpected response from Claude Code"))
@@ -41,7 +43,7 @@ enum ClaudeProvider {
             }
             throw CLIError.failed(String(localized: "Limits unavailable"))
         }
-        return ProviderSnapshot(windows: windows)
+        return ProviderSnapshot(windows: windows, plan: account.email)
     }
 
     static func parse(_ text: String, now: Date = .now) -> [UsageWindow] {
