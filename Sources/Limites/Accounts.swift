@@ -7,14 +7,49 @@ struct ClaudeAccount: Identifiable, Equatable {
     let name: String
     let configDir: String?
 
-    static let all: [ClaudeAccount] = {
+    /// Found on disk every time it is read, so a new account shows up without a rebuild:
+    /// `~/.claude` plus every `~/.claude-*` folder that is signed in.
+    /// Names come from the shell aliases that launch each account, else from the folder.
+    static var all: [ClaudeAccount] {
         let home = NSHomeDirectory()
-        return [
-            ClaudeAccount(id: "claude1", name: "claude1", configDir: nil),
-            ClaudeAccount(id: "claude2", name: "claude2", configDir: "\(home)/.claude-acc2"),
-            ClaudeAccount(id: "claudeorbi", name: "claudeorbi", configDir: "\(home)/.claude-acc-orbi"),
-        ]
-    }()
+        let zshrc = (try? String(contentsOfFile: "\(home)/.zshrc", encoding: .utf8)) ?? ""
+        let aliases = aliasNames(zshrc, home: home)
+
+        var accounts: [ClaudeAccount] = []
+        let main = ClaudeAccount(id: "default", name: aliases[""] ?? "Claude Code", configDir: nil)
+        if main.email != nil { accounts.append(main) }
+
+        let folders = (try? FileManager.default.contentsOfDirectory(atPath: home)) ?? []
+        let others = folders
+            .filter { $0.hasPrefix(".claude-") }
+            .map { "\(home)/\($0)" }
+            .map { dir in ClaudeAccount(id: dir, name: aliases[dir] ?? String(dir.split(separator: "/").last!.dropFirst()), configDir: dir) }
+            .filter { $0.email != nil }
+            .sorted { $0.name < $1.name }
+        return accounts + others
+    }
+
+    /// Maps each config dir to the alias that launches it; the key "" is the default account
+    /// (an alias that runs `claude` with CLAUDE_CONFIG_DIR unset).
+    static func aliasNames(_ text: String, home: String) -> [String: String] {
+        var names: [String: String] = [:]
+        let pattern = #/^\s*alias\s+([A-Za-z0-9_-]+)=['"](.*)['"]\s*$/#
+        for line in text.split(separator: "\n") {
+            guard let match = String(line).wholeMatch(of: pattern) else { continue }
+            let name = String(match.1)
+            let command = String(match.2)
+            guard command.hasSuffix("claude") else { continue }
+            if command.contains("-u CLAUDE_CONFIG_DIR") {
+                names[""] = names[""] ?? name
+            } else if let dir = command.firstMatch(of: #/CLAUDE_CONFIG_DIR=\\?"?([^"\s\\]+)/#) {
+                let path = String(dir.1)
+                    .replacingOccurrences(of: "$HOME", with: home)
+                    .replacingOccurrences(of: "~", with: home)
+                names[path] = names[path] ?? name
+            }
+        }
+        return names
+    }
 
     /// The signed-in email, read from the account's `.claude.json`.
     var email: String? {

@@ -101,6 +101,17 @@ private func date(_ year: Int, _ month: Int, _ day: Int, _ hour: Int, _ minute: 
         #expect(Format.duration(3 * 86_400 + 4 * 3600) == "3 days 4 h")
     }
 
+    @Test func accountNamesComeFromShellAliases() {
+        let zshrc = """
+        alias ll='ls -la'
+        alias claude1='env -u CLAUDE_CONFIG_DIR claude'
+        alias claude2='CLAUDE_CONFIG_DIR="$HOME/.claude-acc2" claude'
+        alias claudeorbi="CLAUDE_CONFIG_DIR=~/.claude-acc-orbi claude"
+        """
+        let names = ClaudeAccount.aliasNames(zshrc, home: "/Users/me")
+        #expect(names == ["": "claude1", "/Users/me/.claude-acc2": "claude2", "/Users/me/.claude-acc-orbi": "claudeorbi"])
+    }
+
     @Test func resetsBeyondTwelveHoursShareOneFormat() {
         let now = Date()
         let soon = Format.reset(now.addingTimeInterval(20 * 3600), now: now)
